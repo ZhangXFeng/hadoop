@@ -18,25 +18,20 @@
 
 package org.apache.hadoop.fs.shell;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.net.URI;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.HdfsConfiguration;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
 
 /**
  * This class tests the logic for displaying the binary formats supported
@@ -45,49 +40,16 @@ import org.junit.Test;
 public class TestTextCommand {
   private static final String TEST_ROOT_DIR =
     System.getProperty("test.build.data", "build/test/data/") + "/testText";
-  private static final Path AVRO_FILENAME = new Path(TEST_ROOT_DIR, "weather.avro");
-  private static MiniDFSCluster cluster;
-  private static FileSystem fs;
-  
-  @Before
-    public void setUp() throws IOException{
-    Configuration conf = new HdfsConfiguration();
-    cluster = new MiniDFSCluster.Builder(conf).build();
-    cluster.waitActive();
-    fs = cluster.getFileSystem();
-  }
+  private static final String AVRO_FILENAME =
+    new Path(TEST_ROOT_DIR, "weather.avro").toUri().getPath();
+  private static final String TEXT_FILENAME =
+    new Path(TEST_ROOT_DIR, "testtextfile.txt").toUri().getPath();
 
-  @After
-    public void tearDown() throws IOException{
-    if(fs != null){
-      fs.close();
-    }
-    if(cluster != null){
-      cluster.shutdown();
-    }
-  }
-  
   /**
    * Tests whether binary Avro data files are displayed correctly.
    */
-  @Test
-    public void testDisplayForAvroFiles() throws Exception {
-    // Create a small Avro data file on the HDFS.
-    createAvroFile(generateWeatherAvroBinaryData());
-
-    // Prepare and call the Text command's protected getInputStream method
-    // using reflection.
-    Configuration conf = fs.getConf();
-    PathData pathData = new PathData(AVRO_FILENAME.toString(), conf);
-    Display.Text text = new Display.Text();
-    text.setConf(conf);
-    Method method = text.getClass().getDeclaredMethod(
-                                                      "getInputStream", PathData.class);
-    method.setAccessible(true);
-    InputStream stream = (InputStream) method.invoke(text, pathData);
-    String output = inputStreamToString(stream);
-
-    // Check the output.
+  @Test (timeout = 30000)
+  public void testDisplayForAvroFiles() throws Exception {
     String expectedOutput =
       "{\"station\":\"011990-99999\",\"time\":-619524000000,\"temp\":0}" +
       System.getProperty("line.separator") +
@@ -100,7 +62,61 @@ public class TestTextCommand {
       "{\"station\":\"012650-99999\",\"time\":-655509600000,\"temp\":78}" +
       System.getProperty("line.separator");
 
+    String output = readUsingTextCommand(AVRO_FILENAME,
+                                         generateWeatherAvroBinaryData());
     assertEquals(expectedOutput, output);
+  }
+
+  /**
+   * Tests that a zero-length file is displayed correctly.
+   */
+  @Test (timeout = 30000)
+  public void testEmptyTextFil() throws Exception {
+    byte[] emptyContents = { };
+    String output = readUsingTextCommand(TEXT_FILENAME, emptyContents);
+    assertTrue("".equals(output));
+  }
+
+  /**
+   * Tests that a one-byte file is displayed correctly.
+   */
+  @Test (timeout = 30000)
+  public void testOneByteTextFil() throws Exception {
+    byte[] oneByteContents = { 'x' };
+    String output = readUsingTextCommand(TEXT_FILENAME, oneByteContents);
+    assertTrue(new String(oneByteContents).equals(output));
+  }
+
+  /**
+   * Tests that a one-byte file is displayed correctly.
+   */
+  @Test (timeout = 30000)
+  public void testTwoByteTextFil() throws Exception {
+    byte[] twoByteContents = { 'x', 'y' };
+    String output = readUsingTextCommand(TEXT_FILENAME, twoByteContents);
+    assertTrue(new String(twoByteContents).equals(output));
+  }
+
+  // Create a file on the local file system and read it using
+  // the Display.Text class.
+  private String readUsingTextCommand(String fileName, byte[] fileContents)
+          throws Exception {
+    createFile(fileName, fileContents);
+
+    // Prepare and call the Text command's protected getInputStream method
+    // using reflection.
+    Configuration conf = new Configuration();
+    URI localPath = new URI(fileName);
+    PathData pathData = new PathData(localPath, conf);
+    Display.Text text = new Display.Text() {
+      @Override
+      public InputStream getInputStream(PathData item) throws IOException {
+        return super.getInputStream(item);
+      }
+    };
+    text.setConf(conf);
+    InputStream stream = (InputStream) text.getInputStream(pathData);
+    return inputStreamToString(stream);
   }
 
   private String inputStreamToString(InputStream stream) throws IOException {
@@ -109,11 +125,13 @@ public class TestTextCommand {
     return writer.toString();
   }
 
-  private void createAvroFile(byte[] contents) throws IOException {
-    FSDataOutputStream stream = fs.create(AVRO_FILENAME);
+  private void createFile(String fileName, byte[] contents) throws IOException {
+    (new File(TEST_ROOT_DIR)).mkdir();
+    File file = new File(fileName);
+    file.createNewFile();
+    FileOutputStream stream = new FileOutputStream(file);
     stream.write(contents);
     stream.close();
-    assertTrue(fs.exists(AVRO_FILENAME));
   }
 
   private byte[] generateWeatherAvroBinaryData() {
@@ -214,5 +232,4 @@ public class TestTextCommand {
     return contents;
   }
 }
-
 
