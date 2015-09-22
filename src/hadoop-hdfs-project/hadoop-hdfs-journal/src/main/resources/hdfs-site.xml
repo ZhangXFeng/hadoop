@@ -95,7 +95,7 @@
                       
   <property>
 		<name>dfs.journalnode.edits.dir</name>
-		<value>d:/tmp/journal</value>
+		<value>/tmp/journal</value>
 	</property>
                       
   <property>
