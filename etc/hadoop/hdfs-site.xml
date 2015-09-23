@@ -1,21 +1,135 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<!--
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License. See accompanying LICENSE file.
--->
-
-<!-- Put site-specific property overrides in this file. -->
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more       -->
+<!-- contributor license agreements.  See the NOTICE file distributed with    -->
+<!-- this work for additional information regarding copyright ownership.      -->
+<!-- The ASF licenses this file to You under the Apache License, Version 2.0  -->
+<!-- (the "License"); you may not use this file except in compliance with     -->
+<!-- the License.  You may obtain a copy of the License at                    -->
+<!--                                                                          -->
+<!--     http://www.apache.org/licenses/LICENSE-2.0                           -->
+<!--                                                                          -->
+<!-- Unless required by applicable law or agreed to in writing, software      -->
+<!-- distributed under the License is distributed on an "AS IS" BASIS,        -->
+<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. -->
+<!-- See the License for the specific language governing permissions and      -->
+<!-- limitations under the License.                                           -->
 
 <configuration>
-
+ <property>
+     	 <name>hadoop.tmp.dir</name>
+	      <value>/tmp/active/namespace</value>
+	 </property>
+                    
+	<property>
+	<name>dfs.namenode.name.dir</name>
+	<value>/tmp/active/namespace/dir</value>
+	</property>
+                     
+ <property>
+  <name>fs.defaultFS</name>
+  <value>hdfs://ns1</value>
+</property>
+                    
+<property>
+   <name>ha.zookeeper.quorum</name>
+   <value>tdh1:2181,tdh2:2181,tdh3:2181</value>
+</property>
+                    
+  <property>
+   <name>dfs.nameservices</name>
+   <value>ns1</value>
+  </property>
+                     
+ <property>
+   <name>dfs.nameservice.id</name>
+   <value>ns1</value>
+  </property>
+                      
+  <property>
+   <name>dfs.ha.namenodes.ns1</name>
+   <value>nn1,nn3</value>
+  </property>
+                      
+ 
+                      
+  <property>
+	<name>dfs.ha.namenode.id</name>
+	<value>nn1</value>
+  </property>
+  <property>
+  	<name>dfs.ha.allow.stale.reads</name>
+  	<value>true</value>
+  </property>
+  <!-- HDFS Federation ns1, ns2 -->
+  <property>
+    <name>dfs.namenode.rpc-address.ns1.nn1</name>
+    <value>localhost:9000</value>
+  </property>
+                      
+  <property>
+    <name>dfs.namenode.http-address.ns1.nn1</name>
+    <value>localhost:50070</value>
+  </property>
+                      
+  <property>
+    <name>dfs.namenode.secondary.http-address.ns1.nn1</name>
+    <value>localhost:50071</value>
+  </property>
+                      
+  <property>
+    <name>dfs.namenode.rpc-address.ns1.nn3</name>
+    <value>localhost:9100</value>
+     </property>
+                    
+  <property>
+      <name>dfs.namenode.http-address.ns1.nn3</name>
+      <value>localhost:50072</value>
+  </property>
+                    
+  <property>
+      <name>dfs.namenode.secondary.http-address.ns1.nn3</name>
+      <value>localhost:50073</value>
+  </property>
+                      
+  <property>
+		<name>dfs.journalnode.edits.dir</name>
+		<value>/tmp/journal</value>
+	</property>
+                      
+  <property>
+      <name>dfs.namenode.shared.edits.dir</name>
+      <value>qjournal://localhost:8485/ns1</value>
+  </property>
+                      
+  <property>
+   <name>dfs.ha.automatic-failover.enabled.ns1</name>
+   <value>true</value>
+ </property>
+                      
+  <property>
+  <name>dfs.client.failover.proxy.provider.ns1</name>
+  <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+</property>
+                     
+ <property>
+  <name>dfs.ha.fencing.methods</name>
+  <value>sshfence</value>
+</property>
+                    
+  <property>
+    <name>dfs.blocksize</name>
+    <value>268435456</value>
+  </property>
+                    
+  <property>
+  <name>dfs.datanode.data.dir</name>
+  <value>/sd01/data</value>
+  </property>
+                    
+    <property>
+  <name>dfs.ha.zkfc.port</name>
+  <value>8019</value>
+  </property>        
 </configuration>
