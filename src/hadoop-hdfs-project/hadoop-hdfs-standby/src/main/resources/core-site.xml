@@ -21,12 +21,12 @@
 
 	<property>
 		<name>hadoop.tmp.dir</name>
-		<value>/tmp/standby/namespace</value>
+		<value>/hadoop/standby/namespace</value>
 	</property>
 
 	<property>
 		<name>dfs.namenode.name.dir</name>
-		<value>/tmp/standby/namespace/dir</value>
+		<value>/hadoop/standby/namespace/dir</value>
 	</property>
 
 
